@@ -1,3 +1,4 @@
+
 import express from "express";
 import http from "http";
 import { Server } from "socket.io";
@@ -22,7 +23,7 @@ io.on("connection", (socket) => {
   let currentRoom = null;
   let currentUser = null;
 
-  // Join Room
+ 
   socket.on("join", ({ roomId, userName }) => {
     if (currentRoom) {
       socket.leave(currentRoom);
@@ -41,22 +42,22 @@ io.on("connection", (socket) => {
     io.to(roomId).emit("userJoined", [...rooms.get(roomId)]);
   });
 
-  // Code Changes
+
   socket.on("codeChange", ({ roomId, code }) => {
     socket.to(roomId).emit("codeUpdate", code);
   });
 
-  // Language Change
+ 
   socket.on("languageChange", ({ roomId, language }) => {
     io.to(roomId).emit("languageUpdate", language);
   });
 
-  // Typing Indicator
+
   socket.on("typing", ({ roomId, userName }) => {
     socket.to(roomId).emit("userTyping", userName);
   });
 
-  // Compile Code using Piston API
+
   socket.on("compileCode", async ({ code, roomId, language, version, input }) => {
     try {
       const response = await axios.post("https://emkc.org/api/v2/piston/execute", {
@@ -75,7 +76,7 @@ io.on("connection", (socket) => {
     }
   });
 
-  // Leave Room
+
   socket.on("leaveRoom", () => {
     if (currentRoom && currentUser) {
       rooms.get(currentRoom)?.delete(currentUser);
@@ -86,7 +87,6 @@ io.on("connection", (socket) => {
     }
   });
 
-  // Handle Disconnect
   socket.on("disconnect", () => {
     if (currentRoom && currentUser) {
       rooms.get(currentRoom)?.delete(currentUser);
@@ -96,16 +96,20 @@ io.on("connection", (socket) => {
   });
 });
 
-// Static Frontend Support
+
+app.get("/healthz", (req, res) => {
+  res.send("OK");
+});
+
+
 const port = process.env.PORT || 5000;
 app.use(express.static(path.join(__dirname, "./frontend/dist")));
 
-app.get("/*", (req, res) => {
+app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "frontend", "dist", "index.html"));
 });
 
 
-// Start Server
 server.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });
