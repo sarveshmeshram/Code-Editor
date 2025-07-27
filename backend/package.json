@@ -4,8 +4,8 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "start": "node index.js",
-    "dev": "nodemon backend/index.js"
+     "start": "node index.js",
+  "build": "cd frontend && npm install && npm run build"
   },
   "engines": {
     "node": "20.x"
