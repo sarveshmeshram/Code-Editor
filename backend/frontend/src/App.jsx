@@ -4,7 +4,7 @@ import './App.css';
 import Editor from '@monaco-editor/react';
 import { v4 as uuidv4 } from 'uuid';
 
-const socket = io("http://localhost:10000");
+const socket = io("https://code-editor-xhwa.onrender.com"); 
 
 const boilerplates = {
   javascript: `// JavaScript Boilerplate

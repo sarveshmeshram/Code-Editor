@@ -1,8 +1,8 @@
-
 import express from "express";
 import http from "http";
 import { Server } from "socket.io";
 import axios from "axios";
+import cors from "cors";
 import { fileURLToPath } from 'url';
 import path, { dirname } from 'path';
 
@@ -10,6 +10,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const app = express();
+app.use(cors());
+
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: { origin: "*" }
@@ -23,7 +25,6 @@ io.on("connection", (socket) => {
   let currentRoom = null;
   let currentUser = null;
 
- 
   socket.on("join", ({ roomId, userName }) => {
     if (currentRoom) {
       socket.leave(currentRoom);
@@ -37,26 +38,22 @@ io.on("connection", (socket) => {
     if (!rooms.has(roomId)) {
       rooms.set(roomId, new Set());
     }
-    rooms.get(roomId).add(userName);
 
+    rooms.get(roomId).add(userName);
     io.to(roomId).emit("userJoined", [...rooms.get(roomId)]);
   });
-
 
   socket.on("codeChange", ({ roomId, code }) => {
     socket.to(roomId).emit("codeUpdate", code);
   });
 
- 
   socket.on("languageChange", ({ roomId, language }) => {
     io.to(roomId).emit("languageUpdate", language);
   });
 
-
   socket.on("typing", ({ roomId, userName }) => {
     socket.to(roomId).emit("userTyping", userName);
   });
-
 
   socket.on("compileCode", async ({ code, roomId, language, version, input }) => {
     try {
@@ -75,7 +72,6 @@ io.on("connection", (socket) => {
       });
     }
   });
-
 
   socket.on("leaveRoom", () => {
     if (currentRoom && currentUser) {
@@ -96,20 +92,15 @@ io.on("connection", (socket) => {
   });
 });
 
-
-app.get("/healthz", (req, res) => {
-  res.send("OK");
-});
-
-
-const port = process.env.PORT || 10000;
-
 app.use(express.static(path.join(__dirname, "./frontend/dist")));
+
+app.get("/healthz", (req, res) => res.send("OK"));
 
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "frontend", "dist", "index.html"));
 });
 
+const port = process.env.PORT || 10000;
 server.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });
